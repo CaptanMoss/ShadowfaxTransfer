@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include <ctype.h>
-#include <wsk.h>
 #include "libwsk.h"
 
 
@@ -17,10 +16,10 @@ void FreeMemory(void* ptr);
 
 
 NTSTATUS WSKConnectPassive(
-    _In_opt_ LPCWSTR NodeName,//IP Address
-    _In_opt_ LPCWSTR ServiceName,//PORT
-    _In_     ADDRESS_FAMILY AddressFamily, //AF_INET
-    _In_     USHORT  SocketType // SOCK_STREAM
+    _In_opt_ LPCWSTR NodeName,
+    _In_opt_ LPCWSTR ServiceName,
+    _In_     ADDRESS_FAMILY AddressFamily,
+    _In_     USHORT  SocketType
 );
 
 
@@ -93,10 +92,10 @@ void FreeMemory(void* ptr) {
 }
 
 NTSTATUS WSKConnectPassive(
-    _In_opt_ LPCWSTR NodeName,//IP Address
-    _In_opt_ LPCWSTR ServiceName,//PORT
-    _In_     ADDRESS_FAMILY AddressFamily, //AF_INET
-    _In_     USHORT  SocketType // SOCK_STREAM
+    _In_opt_ LPCWSTR NodeName,
+    _In_opt_ LPCWSTR ServiceName,
+    _In_     ADDRESS_FAMILY AddressFamily, 
+    _In_     USHORT  SocketType 
 )
 {
     NTSTATUS Status = STATUS_SUCCESS;
@@ -134,7 +133,6 @@ NTSTATUS WSKConnectPassive(
             break;
         }
 
-        // Make sure we got at least one address back
         if (AddrInfo == NULL)
         {
             DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL,
@@ -218,11 +216,6 @@ NTSTATUS WSKConnectPassive(
     if (AddrInfo)
     {
         WSKFreeAddrInfo(AddrInfo);
-    }
-
-    if (!NT_SUCCESS(Status))
-    {
-        //CloseWSKClient(SocketFTP, ClientFTPFileUpload);
     }
 
     return Status;

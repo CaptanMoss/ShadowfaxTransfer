@@ -1,1 +1,0 @@
-C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\x64\Debug\kernel_ftp.sys

