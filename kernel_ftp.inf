@@ -1,0 +1,77 @@
+;
+; kernel_ftp.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System ; TODO: specify appropriate Class
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318} ; TODO: specify appropriate ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=kernel_ftp.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 12
+kernel_ftp_Device_CoInstaller_CopyFiles = 11
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+kernel_ftp.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%kernel_ftp.DeviceDesc%=kernel_ftp_Device, Root\kernel_ftp ; TODO: edit hw-id
+
+[kernel_ftp_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+kernel_ftp.sys
+
+;-------------- Service installation
+[kernel_ftp_Device.NT.Services]
+AddService = kernel_ftp,%SPSVCINST_ASSOCSERVICE%, kernel_ftp_Service_Inst
+
+; -------------- kernel_ftp driver install sections
+[kernel_ftp_Service_Inst]
+DisplayName    = %kernel_ftp.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\kernel_ftp.sys
+
+;
+;--- kernel_ftp_Device Coinstaller installation ------
+;
+
+[kernel_ftp_Device.NT.CoInstallers]
+AddReg=kernel_ftp_Device_CoInstaller_AddReg
+CopyFiles=kernel_ftp_Device_CoInstaller_CopyFiles
+
+[kernel_ftp_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[kernel_ftp_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[kernel_ftp_Device.NT.Wdf]
+KmdfService =  kernel_ftp, kernel_ftp_wdfsect
+[kernel_ftp_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+DiskName = "kernel_ftp Installation Disk"
+kernel_ftp.DeviceDesc = "kernel_ftp Device"
+kernel_ftp.SVCDESC = "kernel_ftp Service"

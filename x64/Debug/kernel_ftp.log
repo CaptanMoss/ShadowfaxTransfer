@@ -1,0 +1,42 @@
+﻿  Building 'kernel_ftp' with toolset 'WindowsKernelModeDriver10.0' and the 'Universal' target platform.
+  Stamping x64\Debug\kernel_ftp.inf
+  Stamping [Version] section with DriverVer=04/06/2024,17.10.36.547
+  main.c
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\libwsk.h(116,9): warning C4047: 'return': 'UCHAR *' differs in levels of indirection from 'NTSTATUS'
+  (compiling source file 'main.c')
+  
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(281,15): warning C4047: '=': 'char' differs in levels of indirection from 'unsigned char *'
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(297,22): warning C4098: 'WSKClientThread': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(310,22): warning C4098: 'WSKClientThread': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(347,26): warning C4098: 'WSKClientThread': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(383,26): warning C4098: 'WSKClientThread': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(481,22): warning C4098: 'FTPUploadFile': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(494,22): warning C4098: 'FTPUploadFile': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(502,18): warning C4098: 'FTPUploadFile': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(525,22): warning C4098: 'WSKClientFTPFileUpload': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(558,22): warning C4098: 'WSKClientFTPFileUpload': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(571,22): warning C4098: 'WSKClientFTPFileUpload': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(717,22): warning C4098: 'WSKFTPSendFile': 'void' function returning a value
+C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\main.c(741,18): warning C4098: 'WSKFTPSendFile': 'void' function returning a value
+  libwsk.lib(libwsk.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
+  Generating code
+  Finished generating code
+  kernel_ftp.vcxproj -> C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\x64\Debug\kernel_ftp.sys
+  Done Adding Additional Store
+  Successfully signed: C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\x64\Debug\kernel_ftp.sys
+  
+  Driver is 'Universal'.
+  .........................
+  Signability test complete.
+  
+  Errors:
+  None
+  
+  Warnings:
+  None
+  
+  Catalog generation complete.
+  C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\x64\Debug\kernel_ftp\kernel_ftp.cat
+  Done Adding Additional Store
+  Successfully signed: C:\Users\ereborlugimli\Desktop\KernelDevelopment\kernel_ftp\x64\Debug\kernel_ftp\kernel_ftp.cat
+  
