@@ -257,8 +257,8 @@ VOID WSKClientThread(
     SOCKET   Socket = (SOCKET)Context;
 
     char    Buffer[PAGE_SIZE] = { 0 };
-    char USER[PAGE_SIZE] = "USER ftpuser\r\n"; 
-    char PASSWORD[PAGE_SIZE] = "PASS 123456\r\n";
+    char USER[PAGE_SIZE] = "USER pixel.painter\r\n"; 
+    char PASSWORD[PAGE_SIZE] = "PASS r4ww7AZW3.Smb8As\r\n";
 
     SIZE_T Bytes = 0u;
     INT    SocketType = 0;
@@ -396,6 +396,7 @@ VOID FTPUploadFile(SOCKET   Socket)
     Status = WSKSend(Socket, Buffer, strlen(Buffer), &Bytes, 0, NULL, NULL);/* Tell server to change to BINARY mode */
 
     memset(Buffer, '\0', sizeof(Buffer));
+
 
     while ((Status = WSKReceive(Socket, Buffer, DEFAULT_BUFFER_LEN, &Bytes, 0, NULL, NULL)) == 0)
     {
@@ -719,3 +720,5 @@ VOID CloseWSKClient(SOCKET LocalSocket, PETHREAD LocalThread)
         LocalThread = NULL;
     }
 }
+
+
