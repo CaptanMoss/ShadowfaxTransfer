@@ -97,7 +97,7 @@ NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* DriverObject, _In_ PUNICODE_STRING Regi
 
 ## Demo
 
-![](2024-05-09-12-06-21.gif)
+You can access the demo link from here: https://drive.google.com/file/d/1Un4mKmtiKoqKBHfDRzghXQFDNGypCJT8/view/
 
 ## Contributing
 
