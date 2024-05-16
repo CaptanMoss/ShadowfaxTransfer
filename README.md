@@ -13,7 +13,7 @@
 1. Clone the project:
 
     ```bash
-    git clone https://github.com/CaptanMoss/kernel_ftp.git
+    git clone https://github.com/CaptanMoss/ShadowfaxTransfer.git
     ```
 
 2. Open the project with Visual Studio.
@@ -97,7 +97,9 @@ NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* DriverObject, _In_ PUNICODE_STRING Regi
 
 ## Demo
 
-You can access the demo link from here: https://drive.google.com/file/d/1Un4mKmtiKoqKBHfDRzghXQFDNGypCJT8/view/
+![](2024-05-16-14-58-07.gif)
+
+You can download the debugged version of the demo [here](https://drive.usercontent.google.com/download?id=1Un4mKmtiKoqKBHfDRzghXQFDNGypCJT8&export=download).
 
 ## Contributing
 
